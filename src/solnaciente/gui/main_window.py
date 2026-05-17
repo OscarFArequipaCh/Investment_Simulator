@@ -10,21 +10,29 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Sol Naciente - Simulador de Inversión")
-        self.resize(1200, 800)
+        self.resize(1400, 900)
+        self.setStyleSheet("background-color: #23282f; color: #e6e6e6;")
+
+        self.statusBar().showMessage("Listo")
 
         central = QtWidgets.QWidget()
         self.setCentralWidget(central)
-        layout = QtWidgets.QHBoxLayout(central)
+        layout = QtWidgets.QVBoxLayout(central)
+        layout.setSpacing(12)
+        layout.setContentsMargins(12, 12, 12, 12)
 
-        splitter = QtWidgets.QSplitter()
+        header = QtWidgets.QLabel("<h1>Sol Naciente</h1><p style='color:#a6b0bf;'>Plataforma de simulación financiera de inversiones</p>")
+        header.setTextFormat(QtCore.Qt.TextFormat.RichText)
+        layout.addWidget(header)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
         splitter.setHandleWidth(8)
-        layout.addWidget(splitter)
 
         # Barra lateral izquierda
         self.sidebar = Sidebar()
         splitter.addWidget(self.sidebar)
-        self.sidebar.setMinimumWidth(320)
+        self.sidebar.setMinimumWidth(340)
 
         # Panel central con pestañas
         self.tabs = QtWidgets.QTabWidget()
@@ -32,10 +40,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.charts_view = ChartsView()
         self.tabs.addTab(self.results_view, "Resultados")
         self.tabs.addTab(self.charts_view, "Gráficas")
+        self.tabs.setStyleSheet(
+            "QTabWidget::pane { border: none; }"
+            "QTabBar::tab { height: 38px; width: 160px; margin: 0 4px; padding: 8px 12px; }"
+            "QTabBar::tab:selected { background: #1f6feb; border-radius: 8px; color: white; }"
+            "QTabBar::tab:!selected { background: #2f343d; color: #b0b7c3; }"
+        )
         splitter.addWidget(self.tabs)
 
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
+
+        layout.addWidget(splitter)
 
         # Conexiones
         self.sidebar.start_requested.connect(self._on_start_requested)
@@ -43,6 +59,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _on_start_requested(self, params: dict) -> None:
         # Deshabilitar inputs mientras corre
         self.sidebar.setEnabled(False)
+        self.statusBar().showMessage("Ejecutando simulación Monte Carlo...")
 
         # Crear hilo y worker (QThread + QObject pattern)
         self.thread = QtCore.QThread()
@@ -53,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.thread.started.connect(self.worker.run)
         self.worker.signals.progress.connect(self.sidebar.progress_bar.setValue)
         self.worker.signals.log.connect(self.sidebar.append_log)
+        self.worker.signals.log.connect(self.statusBar().showMessage)
         self.worker.signals.finished.connect(self._on_simulation_finished)
         self.worker.signals.finished.connect(self.thread.quit)
         self.worker.signals.finished.connect(self.worker.deleteLater)
@@ -94,3 +112,4 @@ class MainWindow(QtWidgets.QMainWindow):
         # Mostrar resumen automático en logs
         summary = f"VAN medio: {npv_mean:.2f} | IC95: {npv_ci[0]:.2f}-{npv_ci[1]:.2f} | P(VAN>0)={success_prob:.2%}"
         self.sidebar.append_log(summary)
+        self.statusBar().showMessage("Simulación completada")

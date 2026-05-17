@@ -160,6 +160,11 @@ class MonteCarloSimulator:
         npvs_arr = np.array(npvs, dtype=float)
         mean_npv = float(npvs_arr.mean())
         std_npv = float(npvs_arr.std(ddof=1)) if n_runs > 1 else 0.0
+        # métricas adicionales del VAN
+        var_5: float = float(np.percentile(npvs_arr, 5)) if npvs_arr.size > 0 else 0.0
+        npv_min: float = float(npvs_arr.min()) if npvs_arr.size > 0 else 0.0
+        npv_max: float = float(npvs_arr.max()) if npvs_arr.size > 0 else 0.0
+        npv_median: float = float(np.median(npvs_arr)) if npvs_arr.size > 0 else 0.0
         # intervalo de confianza 95% (aprox. normal)
         z = 1.959963984540054
         ci_low = mean_npv - z * (std_npv / math.sqrt(n_runs))
@@ -179,6 +184,11 @@ class MonteCarloSimulator:
             "npv_mean": mean_npv,
             "npv_ci": (ci_low, ci_high),
             "success_prob": success_prob,
+            "volatility": std_npv,
+            "var_5": var_5,
+            "npv_min": npv_min,
+            "npv_max": npv_max,
+            "npv_median": npv_median,
             "total_gains_mean": total_gains_mean,
             "active_mean_final": active_mean_final,
             "daily_history": daily_history,

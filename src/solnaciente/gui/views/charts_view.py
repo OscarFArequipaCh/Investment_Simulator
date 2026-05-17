@@ -9,6 +9,12 @@ class ChartsView(QtWidgets.QWidget):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
         self.tabs = QtWidgets.QTabWidget()
+        self.tabs.setStyleSheet(
+            "QTabWidget::pane { background: transparent; border: none; }"
+            "QTabBar::tab { height: 36px; width: 160px; margin: 0 4px; padding: 8px 12px; }"
+            "QTabBar::tab:selected { background: #1f6feb; border-radius: 8px; color: white; }"
+            "QTabBar::tab:!selected { background: #2f343d; color: #b0b7c3; }"
+        )
 
         # Usar ChartWidget para cada pestaña
         self.hist_widget = ChartWidget(figsize=(6, 4))

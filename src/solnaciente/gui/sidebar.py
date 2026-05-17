@@ -80,11 +80,15 @@ class Sidebar(QtWidgets.QFrame):
 
         # Botón iniciar
         self.btn_start = QtWidgets.QPushButton("Iniciar simulación")
+        self.btn_start.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_MediaPlay))
+        self.btn_start.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        self.btn_start.setStyleSheet("padding: 10px; font-weight: 600; background-color: #1f6feb; color: #ffffff; border-radius: 8px;")
         layout.addWidget(self.btn_start)
 
         # Barra de progreso
         self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setRange(0, 100)
+        self.progress_bar.setTextVisible(True)
         layout.addWidget(self.progress_bar)
 
         # Área de logs
