@@ -22,9 +22,26 @@ class MonteCarloSimulator:
         days: número de días a simular por corrida (por defecto 360).
         fixed_fee: ingreso fijo por inversión para la compañía (por inversión).
         company_share: fracción de la utilidad del proyecto que toma la compañía.
+        poisson_lam: λ para la distribución Poisson de nuevas inversiones.
+        erlang_mean: media de la magnitud de inversión (Erlang).
+        erlang_var: varianza de la magnitud de inversión (Erlang).
+        geom_mean: media de la duración en días (Geométrica).
+        rate_mean: media de la tasa diaria (Normal).
+        rate_std: desviación estándar de la tasa diaria (Normal).
     """
 
-    def __init__(self, days: int = 360, fixed_fee: float = 100.0, company_share: float = 0.10) -> None:
+    def __init__(
+        self,
+        days: int = 360,
+        fixed_fee: float = 100.0,
+        company_share: float = 0.10,
+        poisson_lam: float = 0.8,
+        erlang_mean: float = 1000.0,
+        erlang_var: float = 4002.0,
+        geom_mean: float = 200.0,
+        rate_mean: float = 0.0008,
+        rate_std: float = 0.0009,
+    ) -> None:
         if days <= 0:
             raise ValueError("days must be > 0")
         if not (0.0 <= company_share <= 1.0):
@@ -33,6 +50,12 @@ class MonteCarloSimulator:
         self.days = days
         self.fixed_fee = float(fixed_fee)
         self.company_share = float(company_share)
+        self.poisson_lam = float(poisson_lam)
+        self.erlang_mean = float(erlang_mean)
+        self.erlang_var = float(erlang_var)
+        self.geom_mean = float(geom_mean)
+        self.rate_mean = float(rate_mean)
+        self.rate_std = float(rate_std)
 
     @staticmethod
     def _discount_cashflows(cashflows: Dict[int, float], discount_rate_annual: float) -> float:
@@ -96,22 +119,22 @@ class MonteCarloSimulator:
             for day in range(self.days):
                 # nuevas inversiones por Poisson
                 lam_seed = int(run_rng.integers(0, 2 ** 31))
-                new_count = int(distributions.daily_new_investments_poisson(size=1, lam=0.8, seed=lam_seed)[0])
+                new_count = int(distributions.daily_new_investments_poisson(size=1, lam=self.poisson_lam, seed=lam_seed)[0])
                 daily_new[day] = new_count
 
                 # crear nuevas inversiones
                 for _ in range(new_count):
                     # sample magnitude, duration, rate usando seeds derivados
                     amt_seed = int(run_rng.integers(0, 2 ** 31))
-                    amount = float(distributions.magnitude_erlang(size=1, mean=1000.0, var=4000.0, seed=amt_seed)[0])
+                    amount = float(distributions.magnitude_erlang(size=1, mean=self.erlang_mean, var=self.erlang_var, seed=amt_seed)[0])
 
                     dur_seed = int(run_rng.integers(0, 2 ** 31))
-                    duration = int(distributions.duration_geometric(size=1, mean=200.0, seed=dur_seed)[0])
+                    duration = int(distributions.duration_geometric(size=1, mean=self.geom_mean, seed=dur_seed)[0])
 
                     rate_seed = int(run_rng.integers(0, 2 ** 31))
-                    daily_rate = float(distributions.daily_rate_normal(size=1, mean=0.0008, std=0.0009, seed=rate_seed)[0])
+                    daily_rates = distributions.daily_rate_normal(size=duration, mean=self.rate_mean, std=self.rate_std, seed=rate_seed)
 
-                    inv = Investment(initial_amount=amount, duration_days=duration, daily_rate=daily_rate)
+                    inv = Investment(initial_amount=amount, duration_days=duration, daily_rates=daily_rates)
                     start = day
                     end = day + duration
                     investments.append({"investment": inv, "start": start, "end": end})

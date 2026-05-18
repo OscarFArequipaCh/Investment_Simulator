@@ -10,7 +10,7 @@ class Investment:
     Atributos:
         initial_amount: Monto inicial invertido (positivo).
         duration_days: Duración de la inversión en días (entero > 0).
-        daily_rate: Tasa diaria como decimal (p.ej. 0.001 = 0.1%).
+        daily_rates: Lista de tasas diarias en decimal (longitud = duration_days).
         generated_profit: Utilidad generada (se calcula con métodos).
         company_profit: Parte de la utilidad que corresponde a la compañía.
         cumulative_cashflow: Flujo de caja acumulado (se llena al generar cashflows).
@@ -18,7 +18,7 @@ class Investment:
 
     initial_amount: float
     duration_days: int
-    daily_rate: float
+    daily_rates: List[float]
     generated_profit: float = 0.0
     company_profit: float = 0.0
     cumulative_cashflow: List[float] = field(default_factory=list)
@@ -30,6 +30,8 @@ class Investment:
             raise TypeError("duration_days must be an integer")
         if self.initial_amount < 0:
             raise ValueError("initial_amount must be non-negative")
+        if len(self.daily_rates) != self.duration_days:
+            raise ValueError("daily_rates length must equal duration_days")
 
     def growth_series(self) -> List[float]:
         """Devuelve la serie de balance diario (incluye día 0).
@@ -38,13 +40,16 @@ class Investment:
         acumulado de la inversión en cada día.
         """
         series: List[float] = [self.initial_amount]
-        for _ in range(self.duration_days):
-            series.append(series[-1] * (1.0 + self.daily_rate))
+        for i in range(self.duration_days):
+            series.append(series[-1] * (1.0 + self.daily_rates[i]))
         return series
 
     def final_amount(self) -> float:
         """Calcula el monto final después de capitalización diaria compuesta."""
-        return self.initial_amount * (1.0 + self.daily_rate) ** self.duration_days
+        amount = self.initial_amount
+        for r in self.daily_rates:
+            amount *= (1.0 + r)
+        return amount
 
     def calculate_generated_profit(self) -> float:
         """Calcula y almacena la utilidad generada (final - inicial)."""

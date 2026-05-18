@@ -25,13 +25,6 @@ class Sidebar(QtWidgets.QFrame):
         self.spin_runs.setValue(1000)
         form.addRow("Iteraciones MC:", self.spin_runs)
 
-        # Inversión inicial
-        self.spin_initial = QtWidgets.QDoubleSpinBox()
-        self.spin_initial.setRange(0.0, 1e9)
-        self.spin_initial.setValue(1000.0)
-        self.spin_initial.setPrefix("$")
-        form.addRow("Inversión inicial:", self.spin_initial)
-
         # Tasa de descuento anual
         self.spin_discount = QtWidgets.QDoubleSpinBox()
         self.spin_discount.setRange(0.0, 1.0)
@@ -53,7 +46,7 @@ class Sidebar(QtWidgets.QFrame):
         self.spin_erlang_mean.setValue(1000.0)
         self.spin_erlang_var = QtWidgets.QDoubleSpinBox()
         self.spin_erlang_var.setRange(0.1, 1e12)
-        self.spin_erlang_var.setValue(4000.0)
+        self.spin_erlang_var.setValue(4002.0)
         pg_layout.addRow("Erlang media:", self.spin_erlang_mean)
         pg_layout.addRow("Erlang varianza:", self.spin_erlang_var)
         # Geométrica mean
@@ -106,7 +99,6 @@ class Sidebar(QtWidgets.QFrame):
         params = {
             "days": int(self.spin_days.value()),
             "n_runs": int(self.spin_runs.value()),
-            "initial_amount": float(self.spin_initial.value()),
             "discount_rate": float(self.spin_discount.value()),
             "poisson_lambda": float(self.spin_lambda.value()),
             "erlang_mean": float(self.spin_erlang_mean.value()),

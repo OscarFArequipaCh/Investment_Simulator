@@ -50,7 +50,7 @@ def daily_new_investments_poisson(
 
 
 def magnitude_erlang(
-    size: int = 1, *, mean: float = 1000.0, var: float = 4000.0, seed: Optional[int] = None
+    size: int = 1, *, mean: float = 1000.0, var: float = 4002.0, seed: Optional[int] = None
 ) -> np.ndarray:
     """Muestra magnitudes de inversión usando distribución Erlang (Gamma con k entero).
 

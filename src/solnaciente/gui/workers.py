@@ -37,7 +37,15 @@ class SimulationWorker(QtCore.QObject):
             n_runs = int(self.params.get('n_runs', 1000))
             discount = float(self.params.get('discount_rate', 0.05))
 
-            sim = MonteCarloSimulator(days=days)
+            sim = MonteCarloSimulator(
+                days=days,
+                poisson_lam=float(self.params.get('poisson_lambda', 0.8)),
+                erlang_mean=float(self.params.get('erlang_mean', 1000.0)),
+                erlang_var=float(self.params.get('erlang_var', 4002.0)),
+                geom_mean=float(self.params.get('geom_mean', 200.0)),
+                rate_mean=float(self.params.get('rate_mean', 0.0008)),
+                rate_std=float(self.params.get('rate_std', 0.0009)),
+            )
 
             # Ejecutar corrida (síncrono dentro del hilo)
             result = sim.run(n_runs=n_runs, discount_rate_annual=discount)
